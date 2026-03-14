@@ -1283,7 +1283,6 @@ value caml_bytecode_interpreter(code_t prog, asize_t prog_size,
     Instruct(RESUME):
       resume_fn = sp[0];
       resume_arg = sp[1];
-      resume_tail = Ptr_val(sp[2]);
       sp -= 3;
       sp[0] = Val_long(domain_state->trap_sp_off);
       sp[1] = Val_long(0);

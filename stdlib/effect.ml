@@ -73,8 +73,7 @@ module Deep = struct
       exnc: exn -> 'b;
       effc: 'c.'c t -> (('c,'b) continuation -> 'b) option }
 
-  external reperform :
-    external reperform : 'a t -> ('a, 'b) continuation -> 'b = "%reperform"
+  external reperform : 'a t -> ('a, 'b) continuation -> 'b = "%reperform"
 
   let match_with comp arg handler =
     let effc eff k =
