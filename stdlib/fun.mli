@@ -44,12 +44,19 @@ val negate : ('a -> bool) -> ('a -> bool)
 
 (** {1:exception Exception handling} *)
 
-val protect : finally:(unit -> unit) -> (unit -> 'a) -> 'a
+val protect : ?async_finally:(unit -> unit) -> finally:(unit -> unit) -> (unit -> 'a) -> 'a
 (** [protect ~finally work] invokes [work ()] and then [finally ()]
     before [work ()] returns with its value or an exception. In the
     latter case the exception is re-raised after [finally ()]. If
     [finally ()] raises an exception, then the exception
     {!Finally_raised} is raised instead.
+
+    [protect ?async_finally ~finally work] uses [async_finally ()] instead of
+    [finally ()] when [work ()] raises {!Effect.Continuation_deadlocked},
+    which may happen when a dropped continuation is discontinued by the
+    runtime during finalisation. If [async_finally] is omitted and
+    {!Effect.Continuation_deadlocked} is raised, no cleanup is performed
+    and the exception is re-raised immediately to the GC.
 
     [protect] can be used to enforce local invariants whether [work ()]
     returns normally or raises an exception. However, it does not

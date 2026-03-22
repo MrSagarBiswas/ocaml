@@ -37,12 +37,50 @@ let test_protect () =
   in
   assert (does_raise double_raise ())
 
+let test_protect_async_finally () =
+  let marker = ref "" in
+  let deadlocked () = raise Effect.Continuation_deadlocked in
+  let raises_deadlocked f =
+    try
+      f ();
+      false
+    with
+    | Effect.Continuation_deadlocked -> true
+    | _ -> false
+  in
+  (* Case 1: async_finally provided, Continuation_deadlocked raised → run async_finally *)
+  assert (
+    raises_deadlocked (fun () ->
+      Fun.protect
+        ~finally:(fun () -> marker := !marker ^ "F")
+        ~async_finally:(fun () -> marker := !marker ^ "A")
+        deadlocked));
+  assert (!marker = "A");
+  marker := "";
+  (* Case 2: async_finally NOT provided, Continuation_deadlocked raised → no cleanup *)
+  assert (
+    raises_deadlocked (fun () ->
+      Fun.protect
+        ~finally:(fun () -> marker := !marker ^ "F")
+        deadlocked));
+  assert (!marker = "");
+  marker := "";
+  (* Case 3: async_finally NOT provided, other exception → run finally *)
+  assert (
+    (try
+      Fun.protect
+        ~finally:(fun () -> marker := !marker ^ "F")
+        (fun () -> raise Exit)
+     with Exit -> true));
+  assert (!marker = "F")
+
 let tests () =
   test_id ();
   test_const ();
   test_flip ();
   test_negate ();
   test_protect ();
+  test_protect_async_finally ();
   ()
 
 let () =
