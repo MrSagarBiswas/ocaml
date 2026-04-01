@@ -17,4 +17,5 @@ let f () =
 let _ =
     ignore (f ());
     Gc.full_major ();
+    Gc.safe_point ();
     print_endline "Ok"

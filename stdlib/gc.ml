@@ -60,6 +60,7 @@ external minor : unit -> unit = "caml_gc_minor"
 external major_slice : int -> int = "caml_gc_major_slice"
 external major : unit -> unit = "caml_gc_major"
 external full_major : unit -> unit = "caml_gc_full_major"
+external safe_point : unit -> unit = "caml_gc_safe_point"
 external compact : unit -> unit = "caml_gc_compaction"
 external get_minor_free : unit -> int = "caml_get_minor_free"
 

@@ -33,4 +33,5 @@ let g () =
 let _ =
     ignore (g ());
     Gc.full_major ();
+    Gc.safe_point ();
     print_endline "Ok"

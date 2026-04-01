@@ -286,6 +286,15 @@ CAMLprim value caml_gc_full_major(value v)
   return caml_get_value_or_raise(gc_full_major_res());
 }
 
+CAMLprim value caml_gc_safe_point(value v)
+{
+  Caml_check_caml_state();
+  CAMLassert (v == Val_unit);
+  caml_get_value_or_raise(caml_process_pending_actions_res());
+  caml_final_cont_do_calls();
+  return Val_unit;
+}
+
 CAMLprim value caml_gc_major_slice (value v)
 {
   CAML_EV_BEGIN(EV_EXPLICIT_GC_MAJOR_SLICE);

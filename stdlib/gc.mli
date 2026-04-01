@@ -317,6 +317,14 @@ external full_major : unit -> unit = "caml_gc_full_major"
    and perform a complete new cycle.  This will collect all currently
    unreachable blocks. *)
 
+external safe_point : unit -> unit = "caml_gc_safe_point"
+(** Process pending asynchronous callbacks and discontinue continuations
+    that were found unreachable by earlier GC work.
+
+    Continuation cleanup is deferred until [safe_point] is called, so
+    explicit GC operations such as {!full_major} do not by themselves run
+    continuation finalisation callbacks. *)
+
 external compact : unit -> unit = "caml_gc_compaction"
 (** Perform a full major collection and compact the heap.  Note that heap
    compaction is a lengthy operation. *)

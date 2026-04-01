@@ -19,4 +19,5 @@ let _ =
     ignore (f 0);
     ignore (f 1);
     Gc.full_major ();
+    Gc.safe_point ();
     print_endline "Ok"

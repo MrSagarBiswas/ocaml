@@ -21,4 +21,5 @@ let _ =
     let d = Domain.spawn f in
     ignore (Domain.join d);
     Gc.full_major ();
+    Gc.safe_point ();
     print_endline "Ok"

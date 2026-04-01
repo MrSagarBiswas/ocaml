@@ -34,7 +34,8 @@ exception Continuation_already_resumed
     than once. *)
 
 exception Continuation_deadlocked
-(** Exception raised when a continuation becomes unreachable. *)
+(** Exception raised when a continuation becomes unreachable and is later
+    discontinued by {!Gc.safe_point}. *)
 
 external perform : 'a t -> 'a = "%perform"
 (** [perform e] performs an effect [e].
