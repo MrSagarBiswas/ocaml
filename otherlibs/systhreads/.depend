@@ -4,7 +4,9 @@ event.cmx : \
     event.cmi
 event.cmi :
 thread.cmo : \
+    ../../stdlib/effect.cmi \
     thread.cmi
 thread.cmx : \
+    ../../stdlib/effect.cmx \
     thread.cmi
 thread.cmi :

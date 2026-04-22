@@ -41,6 +41,34 @@ let set_uncaught_exception_handler fn = uncaught_exception_handler := fn
 
 exception Exit
 
+let spawn_finaliser_thread finalise k =
+  ignore (thread_new (fun () ->
+    try finalise k with _ -> ()))
+
+let deep_finalise_sync : type a b. (a, b) Effect.Deep.continuation -> unit =
+  fun k ->
+    match Effect.Deep.discontinue k Effect.Continuation_deadlocked with
+    | _v -> ()
+    | exception Effect.Continuation_deadlocked -> ()
+    | exception _e -> ()
+    | effect _e, _k' -> ()
+
+let shallow_finalise_sync : type a b. (a, b) Effect.Shallow.continuation -> unit =
+  fun k ->
+    Effect.Shallow.discontinue_with k Effect.Continuation_deadlocked
+      { retc = (fun _ -> ());
+        exnc = (fun e ->
+          match e with
+          | Effect.Continuation_deadlocked -> ()
+          | _ -> ());
+        effc = (fun _ -> None) }
+
+let offload_deep_finalise k =
+  spawn_finaliser_thread deep_finalise_sync k
+
+let offload_shallow_finalise k =
+  spawn_finaliser_thread shallow_finalise_sync k
+
 let create fn arg =
   thread_new
     (fun () ->
@@ -75,6 +103,9 @@ let exit () =
 
 let () =
   thread_initialize ();
+  Callback.register "Thread.continuation_finalise_deep" offload_deep_finalise;
+  Callback.register "Thread.continuation_finalise_shallow"
+    offload_shallow_finalise;
   (* Called back in [caml_shutdown], when the last domain exits. *)
   Callback.register "Thread.at_shutdown" thread_cleanup
 

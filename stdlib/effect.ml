@@ -66,7 +66,12 @@ module Deep = struct
     resume (take_cont_noexc k) (fun e -> raise e) e
 
   let discontinue_with_backtrace k e bt =
-    resume (take_cont_noexc k) (fun e -> Printexc.raise_with_backtrace e bt) e
+    resume (take_cont_noexc k)
+      (fun e ->
+        match e with
+        | Continuation_deadlocked -> raise Continuation_deadlocked
+        | _ -> Printexc.raise_with_backtrace e bt)
+      e
 
   type ('a,'b) handler =
     { retc: 'a -> 'b;
@@ -177,7 +182,12 @@ module Shallow = struct
     continue_gen k (fun e -> raise e) v handler
 
   let discontinue_with_backtrace k v bt handler =
-    continue_gen k (fun e -> Printexc.raise_with_backtrace e bt) v handler
+    continue_gen k
+      (fun e ->
+        match e with
+        | Continuation_deadlocked -> raise Continuation_deadlocked
+        | _ -> Printexc.raise_with_backtrace e bt)
+      v handler
 
   external get_callstack :
     ('a,'b) continuation -> int -> Printexc.raw_backtrace =
@@ -196,4 +206,3 @@ module Shallow = struct
 
 
 end
-
