@@ -509,8 +509,6 @@ void caml_final_cont_update_major (caml_domain_state* d)
 
 void caml_final_cont_do_calls(void)
 {
-  const value* deep_finalise = caml_named_value ("Effect.Deep.finalise");
-  const value* shallow_finalise = caml_named_value ("Effect.Shallow.finalise");
   const value* thread_deep_finalise =
     caml_named_value ("Thread.continuation_finalise_deep");
   const value* thread_shallow_finalise =
@@ -533,18 +531,12 @@ void caml_final_cont_do_calls(void)
     if (Stack_handle_effect(stk) != Val_unit) {
       if (thread_deep_finalise != NULL) {
         caml_callback(*thread_deep_finalise, c);
-      } else {
-        CAMLassert (deep_finalise != NULL);
-        caml_callback(*deep_finalise, c);
       }
     } else {
       /* Effect handler was set to [Val_unit] by
         [caml_continuation_clear_handler_noexc] */
       if (thread_shallow_finalise != NULL) {
         caml_callback(*thread_shallow_finalise, c);
-      } else {
-        CAMLassert (shallow_finalise != NULL);
-        caml_callback(*shallow_finalise, c);
       }
     }
     fi->running_finalisation_function = 0;
