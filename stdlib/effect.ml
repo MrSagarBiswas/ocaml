@@ -47,6 +47,10 @@ exception Continuation_deadlocked
 external register_named_value : string -> 'a -> unit
                               = "caml_register_named_value"
 
+let run_finaliser_in_separate_domain finalise k =
+  ignore (Domain.spawn (fun () ->
+    try finalise k with _ -> ()))
+
 module Deep = struct
 
   type nonrec ('a,'b) continuation = ('a,'b) continuation
@@ -100,7 +104,7 @@ module Deep = struct
     ('a,'b) continuation -> int -> Printexc.raw_backtrace =
     "caml_get_continuation_callstack"
 
-  let finalise k =
+  let finalise_sync k =
     match discontinue k Continuation_deadlocked with
     | _v -> assert false (* TODO: Is this a sensible behaviour? *)
     | exception Continuation_deadlocked ->
@@ -109,6 +113,9 @@ module Deep = struct
       ()
     | exception _e -> assert false (* TODO: what to do here? *)
     | effect _e, _k' -> assert false (* TODO: what to do here? *)
+
+  let finalise k =
+    run_finaliser_in_separate_domain finalise_sync k
 
   let _ = register_named_value "Effect.Deep.finalise" finalise
 
@@ -183,7 +190,7 @@ module Shallow = struct
     ('a,'b) continuation -> int -> Printexc.raw_backtrace =
     "caml_get_continuation_callstack"
 
-  let finalise k =
+  let finalise_sync k =
     discontinue_with k Continuation_deadlocked
     { retc = (fun _ -> assert false);
       exnc = (fun e ->
@@ -192,8 +199,10 @@ module Shallow = struct
         | _ -> assert false);
       effc = (fun _ -> assert false) }
 
+  let finalise k =
+    run_finaliser_in_separate_domain finalise_sync k
+
   let _ = register_named_value "Effect.Shallow.finalise" finalise
 
 
 end
-
